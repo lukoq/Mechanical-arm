@@ -4,16 +4,14 @@
 
 bool moveToCoords(float x, float y, float gamma);
 int applyBetaLimits(int a, int requestedB);
+void updateServos();
 
 //PHYSICS
 const float H = 6.5; 
 const float L1 = 8.0; 
 const float L2 = 8.0;
 
-float currX = 10.0, currY = 10.0, currGamma = 90.0;
-
-
-
+//TARGETS ARRAY {Distnace, Height, Rotation}
 float targetsArr[][3] = {
   {12.0, 0.0, 40.0},
   {12.0, 0.0, 170.0},
@@ -26,6 +24,8 @@ float targetsArr[][3] = {
   {5.0, 7.0, 90.0},
 };
 
+const int numTargets = sizeof(targetsArr) / sizeof(targetsArr[0]);
+int currentTargetIndex = 0; 
 
 float currentAlpha = 100.0;
 float currentBeta = 135.0;
@@ -34,30 +34,26 @@ int targetAlpha = 100;
 int targetBeta = 135;
 int targetGamma = 90;
 
-const int numTargets = sizeof(targetsArr) / sizeof(targetsArr[0]);
-int currentTargetIndex = 0; 
 
 const float stepSize = 0.5;      
 unsigned long previousMillis = 0;
 const unsigned long interval = 20; 
-
 bool isWaiting = false;
 unsigned long pauseMillis = 0;
-const unsigned long pauseTime = 1500;
+const unsigned long pauseTime = 1500; 
 
-Servo servoAlpha, servoBeta, servoGamma;
+
+Servo bottomServo, topServo, rotatorServo;
 
 void setup() {
   Serial.begin(9600);
-  servoAlpha.attach(4);
-  servoGamma.attach(3);
-  servoBeta.attach(2);
+  bottomServo.attach(4);
+  rotatorServo.attach(3);
+  topServo.attach(2);
 
-  moveToCoords(currX, currY, currGamma);
-
-  servoAlpha.write(currentAlpha);
-  servoBeta.write(currentBeta);
-  servoGamma.write(currentGamma);
+  bottomServo.write(currentAlpha);
+  topServo.write(currentBeta);
+  rotatorServo.write(currentGamma);
 }
 
 
@@ -69,6 +65,7 @@ void updateServos() {
 
     bool needsUpdate = false;
 
+    //Bottom servo update
     if(abs(targetAlpha - currentAlpha) > stepSize) {
       if(currentAlpha < targetAlpha) {
          currentAlpha += stepSize;
@@ -82,6 +79,7 @@ void updateServos() {
       currentAlpha = targetAlpha; 
     }
 
+    //Top servo update
     if(abs(targetBeta - currentBeta) > stepSize) {
       if(currentBeta < targetBeta){
          currentBeta += stepSize;
@@ -95,6 +93,7 @@ void updateServos() {
       currentBeta = targetBeta;
     }
 
+    //Rotator servo update
     if(abs(targetGamma - currentGamma) > stepSize) {
       if(currentGamma < targetGamma) {
         currentGamma += stepSize;
@@ -112,9 +111,9 @@ void updateServos() {
     if(needsUpdate) {
       int safeBeta = applyBetaLimits(round(currentAlpha), round(currentBeta));
       
-      servoAlpha.write(round(currentAlpha));
-      servoBeta.write(safeBeta);
-      servoGamma.write(round(currentGamma));
+      bottomServo.write(round(currentAlpha));
+      topServo.write(safeBeta);
+      rotatorServo.write(round(currentGamma));
     }
   }
 }
@@ -144,7 +143,7 @@ bool moveToCoords(float x, float y, float gamma) {
   float distSq = x*x + relY*relY;
   float dist = sqrt(distSq);
 
-  if(dist > (L1 + L2) || dist < abs(L1 - L2)){
+  if(dist > (L1 + L2) || dist < abs(L1 - L2)) {
     return false;
   }
 
@@ -167,13 +166,11 @@ bool moveToCoords(float x, float y, float gamma) {
   targetBeta = b;
   targetGamma = g;
 
-
   return true;
 }
 
 void loop() {
   updateServos();
-
 
   bool isReached = (abs(currentAlpha - targetAlpha) < 0.1) && 
                    (abs(currentBeta - targetBeta) < 0.1) && 
@@ -199,7 +196,6 @@ void loop() {
         float nextY = targetsArr[currentTargetIndex][1];
         float nextGamma = targetsArr[currentTargetIndex][2];
         
-
         bool success = moveToCoords(nextX, nextY, nextGamma);
         if (!success) {
           Serial.println("Error: Beyond the limit!");
