@@ -87,15 +87,48 @@ $$
 \theta_2 = \arccos(\cos(\theta_2))
 $$
 
+My servos MG90S are not calibrated correctly. The lower servo is set vertically at 100 degrees. The upper servo is set horizontally at 135 degrees. I was forced to add bias to them.
 
+$$
+\alpha = 90^\circ - (\theta_1 + 100^\circ)
+$$
+
+Furthermore, the upper servo mechanism is not dependent on the upper arm, so I have to set its angle relative to the horizontal base.
+
+$$
+\beta = (\theta_1 - \theta_2) + 135^\circ
+$$
 
 In the code
 ```c
-float relY = y - H;
-float distSq = x*x + relY*relY;
-float dist = sqrt(distSq);
+bool moveToCoords(float x, float y, float gamma) {
+  float relY = y - H;
+  float distSq = x*x + relY*relY;
+  float dist = sqrt(distSq);
 
-if(dist > (L1 + L2) || dist < abs(L1 - L2)) {
-  return false;
-} //I check the distance in case it is too short or too long
+  if(dist > (L1 + L2) || dist < abs(L1 - L2)) {
+    return false;
+  } //I check the distance in case it is too short or too long
+
+  float cosT2 = constrain((distSq - L1*L1 - L2*L2)/(2.0*L1 * L2), -1.0, 1.0);
+  float t2 = acos(cosT2);
+  
+  float cosT1_part = constrain((L1*L1 + distSq - L2*L2)/(2.0*L1 * dist), -1.0, 1.0);
+
+  float t1 = atan2(relY, x) + acos(cosT1_part);
+  int a = round(100.0 + 90.0 - degrees(t1));
+
+  float t2_horizon = t1 - t2; 
+  int b = round(degrees(t2_horizon) + 135.0);
+
+  int g = constrain(round(gamma), 0, 180);
+  a = constrain(a, 45, 180);
+  b = applyBetaLimits(a, b); 
+
+  targetAlpha = a;     
+  targetBeta = b;
+  targetGamma = g;
+
+  return true;
+}
 ```
