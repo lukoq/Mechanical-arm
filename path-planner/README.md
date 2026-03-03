@@ -60,7 +60,7 @@ L_2^2 = D^2 + L_1^2 - 2DL_1\cos(\sigma)
 $$
 
 $$
-\cos(\sigma) = \frac{L_1^2 + L_2^2 - D^2}{2L_1L_2}
+\cos(\sigma) = \frac{D^2 + L_1^2 - L_2^2}{2DL_1}
 $$
 
 $$
