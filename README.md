@@ -13,7 +13,9 @@ The repository includes Arduino sketches written in C/C++ that control multiple 
 * External ≥5V power supply for servos
 * Mechanical arm structure (I purchased mine on Temu)
 
-## Photos
+## Scheme
+
+<img width="640" height="310" alt="scheme" src="https://github.com/user-attachments/assets/242423b1-4184-4daf-a111-a55dafa495bd" />
 
 
 ## License
