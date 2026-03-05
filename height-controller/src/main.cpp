@@ -26,7 +26,7 @@ int rotatorDirection = 1;
 //PHYSICS
 const float H = 6.5;   
 const float L1 = 8.0;  
-const float L2 = 10.0; 
+const float L2 = 8.0; 
 float targetHeight = 5.0;
 
 void setup() {
@@ -61,7 +61,7 @@ int applyLimits(int a, int requestedB) {
 
 int calculateBeta(float y, int a) {
 
-  float theta1 = (195.0 - a) * PI / 180.0;
+  float theta1 = (100.0 + 90.0 - a) * PI / 180.0;
   float sinTheta2 = (y - H - L1 * sin(theta1)) / L2;
   
   if(sinTheta2 < -1.0 || sinTheta2 > 1.0){
